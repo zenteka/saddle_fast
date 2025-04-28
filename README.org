@@ -1,0 +1,19 @@
+#+AUTHOR: Karol Piera
+
+* Main
+
+This directory contains saddle analysis from Luca Nanni. This analysis is part of LCS pipeline.
+
+* Useage
+
+* Output
+Scripts runs several analysis at both chromsome level and genome level.
+
+** Compartment segregation score (cscore)
+
+** Tile-level analysis
+
+** 8 Sub-ompartment saddle plots
+
+** Domain-level analysis
+
