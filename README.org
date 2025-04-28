@@ -42,8 +42,12 @@ To run the analysis two files are mandatory and one is hard-coded:
      echo "  -o <outpath>      Path to the output directory"
    }   
  #+end_src
- 
-** parameter explanation 
+
+#+begin_src bash
+  # Here is an exmaple
+  ./RunSaddle.sh -i /path/to/mcool -c /path/to/comaprtments.bed -o /path/to/your/output
+#+end_src
+** Parameter explanation 
 Currently, for the sake of simplicity and reproducibility, following parameters are hard coded:
 - HIC_RES hic resolution that is used to extract contacts
 - calder resolution used to call compartments
@@ -52,7 +56,8 @@ Currently, for the sake of simplicity and reproducibility, following parameters 
 
 * Output
 Scripts runs several analysis at both chromosome level and genome level. Detailed description will follow here soon.
-
+In the output directory, you will find plots directory with the results from chromosome level analysis. 
+In the main directory you can 
 ** Compartment segregation score (cscore)
 
 ** Tile-level analysis
