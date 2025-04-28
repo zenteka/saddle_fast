@@ -14,9 +14,11 @@ Please note that this repository is work-in-progress, therefore if you encounter
 * Useage
 
 ** Installation
+Clone repo and then:
 #+begin_src bash
   micromamba/mamba/conda create -f saddle_fast.yml -n <your_chosen_name>
   micromamba/mamba/conda activate <your_chosen_name>
+  chmod +x RunSaddle.sh
 #+end_src
 
 ** Input 
@@ -25,9 +27,12 @@ To run the analysis two files are mandatory and one is hard-coded:
 - *hic map in cool format*
 - chromosomes to exclude (hard-coded)
 
-  Chromosomes to exclude can be problematic given the lack of standards in the hic field with regard to naming, including them in hic maps, etc. For now, the reference directory contains default list of all the chromsomes found in hg19 and hg38 that we always discard. You might ask: patches, random, MT are never included in our hic_pipeline then, why bother. Pipelines are run differently and maps can include them sometimes. better be safe than sorry.
+  Chromosomes to exclude can be problematic given the lack of standards in the hic field with regard to naming. For now, the reference directory contains default list of all the chromsomes found in hg19 and hg38 that we usually discard. You might ask: patches, random, MT are never included in our hic_pipeline then, why bother. Pipelines are run differently and maps can include them sometimes. Both files are simply concatenated lists of all excluded chromosomes:
+  + one list contains 'chr' as prefix,
 
-  In the ref folder, there are two default exclusion lists for hg19 and hg38 assembly. More can be added. You customize variable EXCLUDED_CHROMOSOMES in RunSaddle.sh script to choose different files. 
+  + second with out 'chr' prefix.
+    
+  In the ref folder, there are two default exclusion lists for hg19 and hg38 assembly. More can be added. If you don't like they way I set it up, customize variable EXCLUDED_CHROMOSOMES in RunSaddle.sh script or add your own file and modify EXCLUDED_CHROMOSOMES. 
   
  #+begin_src bash
    usage() {
@@ -43,10 +48,10 @@ Currently, for the sake of simplicity and reproducibility, following parameters 
 - HIC_RES hic resolution that is used to extract contacts
 - calder resolution used to call compartments
 - n_tiles = 16; parameter to control bins in quantile analysis. [See section: Output]
-- EXCLUDED_CHROMOSOMES = set to a hg38 defaultfile in there reference folder.
+- EXCLUDED_CHROMOSOMES = set to a hg38 default file in there reference folder.
 
 * Output
-Scripts runs several analysis at both chromsome level and genome level. Detailed description will follow here soon.
+Scripts runs several analysis at both chromosome level and genome level. Detailed description will follow here soon.
 
 ** Compartment segregation score (cscore)
 
