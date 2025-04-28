@@ -43,7 +43,7 @@ Currently, for the sake of simplicity and reproducibility, following parameters 
 - HIC_RES hic resolution that is used to extract contacts
 - calder resolution used to call compartments
 - n_tiles = 16; parameter to control bins in quantile analysis. [See section: Output]
-- EXCLUDED_CHROMOSOMES = set to file in there reference folder.
+- EXCLUDED_CHROMOSOMES = set to a hg38 defaultfile in there reference folder.
 
 * Output
 Scripts runs several analysis at both chromsome level and genome level. Detailed description will follow here soon.
