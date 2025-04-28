@@ -4,17 +4,17 @@
 
 This directory contains saddle analysis from Luca Nanni. This analysis is part of LCS pipeline.
 Major improvements/fixes:
-- most major computation done in polars (parallel)
+- Most major computations are  done in polars (parallel)
 - fixed statannot - seaborn conflict
-- main code simplification preprocessing function moved to utils; plotting functions moved to saddle_plt module
+- main code simplification, preprocessing function moved to utils; plotting functions moved to saddle_plt module
 - removed redundant intermediary variables
     
-Please note that this repository is work-in-progress, therefore if you encounter any bugs, please report them to karol.piera@unil.ch
+Please note that this repository is work-in-progress, therefore, if you encounter any bugs, please report them to karol.piera@unil.ch
   
-* Useage
+* Usage
 
 ** Installation
-Clone repo and then:
+Clone the repo and then:
 #+begin_src bash
   micromamba/mamba/conda create -f saddle_fast.yml -n <your_chosen_name>
   micromamba/mamba/conda activate <your_chosen_name>
@@ -22,17 +22,17 @@ Clone repo and then:
 #+end_src
 
 ** Input 
-To run the analysis two files are mandatory and one is hard-coded:
+To run the analysis, two files are mandatory, and one is hard-coded:
 - *calder compartment calls*
 - *hic map in cool format*
 - chromosomes to exclude (hard-coded)
 
-  Chromosomes to exclude can be problematic given the lack of standards in the hic field with regard to naming. For now, the reference directory contains default list of all the chromsomes found in hg19 and hg38 that we usually discard. You might ask: patches, random, MT are never included in our hic_pipeline then, why bother. Pipelines are run differently and maps can include them sometimes. Both files are simply concatenated lists of all excluded chromosomes:
-  + one list contains 'chr' as prefix,
+  Chromosomes to exclude can be problematic, given the lack of standards in the hic field with regard to naming. For now, the reference directory contains a default list of all the chromosomes found in hg19 and hg38 that we usually discard. You might ask: patches, random, MT are never included in our hic_pipeline then, why bother. Pipelines are run differently and maps can include them sometimes. Both files are simply concatenated lists of all excluded chromosomes:
+  + one list contains 'chr' as the prefix,
 
-  + second with out 'chr' prefix.
+  + second without 'chr' prefix.
     
-  In the ref folder, there are two default exclusion lists for hg19 and hg38 assembly. More can be added. If you don't like they way I set it up, customize variable EXCLUDED_CHROMOSOMES in RunSaddle.sh script or add your own file and modify EXCLUDED_CHROMOSOMES. 
+  In the ref folder, there are two default exclusion lists for hg19 and hg38 assembly. More can be added. If you don't like they way I set it up, customize the variable EXCLUDED_CHROMOSOMES in RunSaddle.sh script or add your own file and modify EXCLUDED_CHROMOSOMES. 
   
  #+begin_src bash
    usage() {
@@ -55,9 +55,10 @@ Currently, for the sake of simplicity and reproducibility, following parameters 
 - EXCLUDED_CHROMOSOMES = set to a hg38 default file in there reference folder.
 
 * Output
-Scripts runs several analysis at both chromosome level and genome level. Detailed description will follow here soon.
-In the output directory, you will find plots directory with the results from chromosome level analysis. 
-In the main directory you can 
+Scripts run several analyses at both the chromosome level and the genome level. A detailed description will follow here soon.
+In the output directory, you will find a plots directory with the results from chromosome level analysis. 
+In the main directory, you can find the following outputs:
+
 ** Compartment segregation score (cscore)
 
 ** Tile-level analysis
