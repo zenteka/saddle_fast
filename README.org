@@ -3,11 +3,50 @@
 * Main
 
 This directory contains saddle analysis from Luca Nanni. This analysis is part of LCS pipeline.
-
+Major improvements/fixes:
+- most major computation done in polars (parallel)
+- fixed statannot - seaborn conflict
+- main code simplification preprocessing function moved to utils; plotting functions moved to saddle_plt module
+- removed redundant intermediary variables
+    
+Please note that this repository is work-in-progress, therefore if you encounter any bugs, please report them to karol.piera@unil.ch
+  
 * Useage
 
+** Installation
+#+begin_src bash
+  micromamba/mamba/conda create -f saddle_fast.yml -n <your_chosen_name>
+  micromamba/mamba/conda activate <your_chosen_name>
+#+end_src
+
+** Input 
+To run the analysis two files are mandatory and one is hard-coded:
+- *calder compartment calls*
+- *hic map in cool format*
+- chromosomes to exclude (hard-coded)
+
+  Chromosomes to exclude can be problematic given the lack of standards in the hic field with regard to naming, including them in hic maps, etc. For now, the reference directory contains default list of all the chromsomes found in hg19 and hg38 that we always discard. You might ask: patches, random, MT are never included in our hic_pipeline then, why bother. Pipelines are run differently and maps can include them sometimes. better be safe than sorry.
+
+  In the ref folder, there are two default exclusion lists for hg19 and hg38 assembly. More can be added. You customize variable EXCLUDED_CHROMOSOMES in RunSaddle.sh script to choose different files. 
+  
+ #+begin_src bash
+   usage() {
+     echo "Usage: $0 -i <input> -c <compartments> -o <outpath>"
+     echo "  -i <input>         Path to the input .mcool file"
+     echo "  -c <compartments>  Path to the compartments file"
+     echo "  -o <outpath>      Path to the output directory"
+   }   
+ #+end_src
+ 
+** parameter explanation 
+Currently, for the sake of simplicity and reproducibility, following parameters are hard coded:
+- HIC_RES hic resolution that is used to extract contacts
+- calder resolution used to call compartments
+- n_tiles = 16; parameter to control bins in quantile analysis. [See section: Output]
+- EXCLUDED_CHROMOSOMES = set to file in there reference folder.
+
 * Output
-Scripts runs several analysis at both chromsome level and genome level.
+Scripts runs several analysis at both chromsome level and genome level. Detailed description will follow here soon.
 
 ** Compartment segregation score (cscore)
 
