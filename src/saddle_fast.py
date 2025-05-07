@@ -26,14 +26,11 @@ import polars as pl
 
 from scipy.stats import spearmanr
 from sklearn.preprocessing import StandardScaler
-
 from pybedtools.bedtool import BedTool
-from importlib import reload
 
+# Get saddle modules
 import saddle_plt
 import utils
-#reload(saddle_plt)
-#reload(utils)
 
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -123,8 +120,9 @@ def main():
         logger.info("- Extracting compartments for the chromosome")
     
         chrom = "chr" + str(chrom) if not str(chrom).startswith("chr") else chrom
-        # TODO:
-        # Polars cut and qcut is consistent with pandas. See 
+        # TODO: cut and quct issue. 
+        # Polars cut and qcut is consistent with pandas.
+        # Find a faster work-around if possible. For now, stick with Luca's implementation.
         chrom_comps = compartments_binned[compartments_binned.chr == chrom]\
             .assign(bin = lambda x: x.start//hic_resolution,
                     tile = lambda x: pd.cut(x.domain_rank, bins = n_tiles, labels = list(range(n_tiles))))\
@@ -257,6 +255,7 @@ def main():
         #       tile1 = 3, tile2 = 7, count = 100
         #       tile1 = 2, tile2 = 5, count = 50
         #       tile1 = 3, tile2 = 7, count = 200
+        
         logger.info("- Tile-level analysis")
         tile_level = chrom_pixels_with_comp.group_by(['tile1','tile2']).agg(
             pl.sum("oe").alias("sum"),
@@ -423,32 +422,6 @@ def main():
 
     logger.info("Computing compartment segregation distributions")
     # Genome-wide plots
-    
-    # if not os.path.isfile(os.path.join(output_path, "plots", "genomewide_compartment_segregation_distribution.pdf")):
-    #     g = sns.displot(data = all_chrom_compartment_scores, x = "oe_sim_corr", kind='hist', stat='probability')\
-        #         .set(xlim=(-1, 1))\
-        #         .set_xlabels("Compartment segregation")\
-        #         .set_ylabels("Frequency")\
-        #         .map_dataframe(__plot_mean, column = "oe_sim_corr")
-    #     plt.show()
-    #     g = sns.displot(data = all_chrom_compartment_scores, 
-    #                     col = "chr", 
-    #                     col_order = list(filter(lambda x: x not in excluded_chroms, chrom_sizes.index.tolist())), 
-    #                     col_wrap=8,
-    #                     x = "oe_sim_corr", 
-    #                     kind='hist', 
-    #                     stat='probability',
-    #                     common_norm=False)\
-        #            .set(xlim=(-1, 1))\
-        #            .set_xlabels("Compartment segregation")\
-        #            .set_ylabels("Frequency")\
-        #            .map_dataframe(__plot_mean, column = "oe_sim_corr", ypos=0.11)\
-        #            .set_titles(row_template="{row_name}", col_template="{col_name}",size = 20 )
-    #     plt.show()
-    
-    # g.savefig(os.path.join(output_path, "plots", "genomewide_compartment_segregation_distribution_by_chrom.pdf"))
-    # plt.close(g.fig)
-
     logger.info("Computing genome-wide saddle plots")
     saddle_plt.plt_genomewide_saddle(all_comp_level, output_path=output_path)
 
@@ -484,5 +457,5 @@ def main():
       .to_csv(os.path.join(output_path, "segregation_stats.tsv"), sep="\t", index=False, header=True)
 
 if __name__ == '__main__':
-        main()
+    main()
 
