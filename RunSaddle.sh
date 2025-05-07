@@ -24,8 +24,11 @@ while getopts "i:c:o:" opt; do
       i) COOLPATH="$OPTARG";; # MCOOL path e.g. inter_30.mcool
       c) COMPARTMENTS="$OPTARG" ;; # COMPARTMENTS 
       o) OUTPATH="$OPTARG" ;;
-      h) echo "Usage: $0 -i <input> -c <compartments> -o <outpath>"
-       exit 1 ;;
+      h) usage
+	 exit 0 ;;
+      \?) echo "Invalid option -$OPTARG" >&2
+	  usage
+	  exit 1 ;;
   esac
 done
 
