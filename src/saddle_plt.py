@@ -32,9 +32,12 @@ def plt_comp_segreg_distribution(indf, chrom, output_path=None):
     sns.boxplot(data=indf,
                 x='compartment',
                 y='oe_sim_corr',
-                order = COMPARTMENTS_8_LABELS,
+                order = list(reversed(COMPARTMENTS_8_LABELS)),
+                hue = 'compartment',
+                hue_order = list(reversed(COMPARTMENTS_8_LABELS)),
+                palette = "bwr",
+                legend = False,
                 )
-                
     plt.xlabel("Compartment")
     plt.ylabel("Segregation score")
     plt.title(chrom)
@@ -47,14 +50,14 @@ def plt_comp_segreg_distribution(indf, chrom, output_path=None):
     
     fig = plt.figure()
     sns.scatterplot(data = indf, 
-                    x="domain_rank", y = "oe_sim_corr", hue = "compartment",
-                                                      hue_order=reversed(COMPARTMENTS_8_LABELS), palette = "bwr",
-                                                      rasterized=False)
+                    x="domain_rank", y="oe_sim_corr",
+                    hue="compartment", hue_order=list(reversed(COMPARTMENTS_8_LABELS)),
+                    palette="bwr", legend=False,
+                    rasterized=False)
     plt.xlabel("Compartment rank")
     plt.ylabel("Segregation score")
     plt.title(chrom)
-    sns.despine()
-    plt.legend(bbox_to_anchor=(1, 1))
+    sns.despine() 
     if output_path is not None:
         fig.savefig(os.path.join(output_path, f"{chrom}_domains_segregation_distribution.pdf"))
         plt.close(fig)
@@ -71,7 +74,9 @@ def plt_tile_segreg_distribution(indf, chrom, output_path=None):
     """
     fig = plt.figure()
     sns.boxplot(data=indf, x = 'tile', 
-                y='oe_sim_corr', palette = 'bwr')
+                y='oe_sim_corr', hue = "tile",
+                legend = False,
+                palette = 'bwr')
     plt.xlabel("Compartment percentile")
     plt.ylabel("Segregation score")
     n_tiles =  len(indf['tile'].unique())
@@ -113,7 +118,8 @@ def plt_tile_analysis(tiledf, chrom_comps, chrom, output_path=None):
         plt.show()
     
     fig = plt.figure()
-    sns.boxplot(data = chrom_comps, x='tile', y = 'domain_rank', palette = 'bwr')
+    sns.boxplot(data = chrom_comps, x='tile', y='domain_rank',
+                hue='tile', legend=False, palette='bwr')
     plt.xlabel("Compartment percentile")
     plt.ylabel("Compartment rank")
     sns.despine()
@@ -147,12 +153,16 @@ def plt_chrom_comp_saddle(comp_level, chrom, output_path=None):
 
 def plt_comp_rank_distribution(chrom_comps, chrom, output_path=None):
     '''
-        Plot the compartment domain rank distribution for a given chromosome.
-    
+        Plot the compartment domain rank distribution for a given chromosome.    
     '''
     fig = plt.figure()
-    sns.boxplot(data = chrom_comps, x='compartment', y = 'domain_rank', palette = 'bwr',
-                order = list(reversed(COMPARTMENTS_8_LABELS)))
+    sns.boxplot(data=chrom_comps,
+                x='compartment', y='domain_rank',
+                hue='compartment',
+                order=list(reversed(COMPARTMENTS_8_LABELS)),
+                hue_order=list(reversed(COMPARTMENTS_8_LABELS)),
+                palette='bwr',
+                legend=False)
     plt.xlabel("Compartment")
     plt.ylabel("Compartment rank")
     sns.despine()
@@ -249,19 +259,22 @@ def plt_AB_segregation(all_comp_level,output_path=None):
         "AA-BB": "lightblue",
         "AB": "salmon"
     }
-
     
     fig = plt.figure(figsize=(3, 5))
     sns.boxplot(data = all_comp_2level, 
                     x = 'compartment_pair_diff_same', y = "avg_oe",
                     order = list(comp_2leve_palette.keys()),
+                    hue = 'compartment_pair_diff_same',
+                    legend = False,
                     palette = comp_2leve_palette,
                     showfliers=False,
                     boxprops={'alpha':0.3})
     ax = sns.stripplot(data = all_comp_2level, 
                        x = 'compartment_pair_diff_same', y = "avg_oe",
-                           order = list(comp_2leve_palette.keys()),
-                           palette = comp_2leve_palette)
+                       hue = 'compartment_pair_diff_same',
+                       legend = False,
+                       order = list(comp_2leve_palette.keys()),
+                       palette = comp_2leve_palette)
     annotator = Annotator(ax, 
     pairs=[("AA-BB", "AB")],
     data=all_comp_2level,
@@ -270,7 +283,6 @@ def plt_AB_segregation(all_comp_level,output_path=None):
 
     annotator.configure(test='Mann-Whitney', text_format='full', loc='inside')
     annotator.apply_and_annotate()
-
     # Isuue _BoxPlotter calss removed, stat_annot is not compatible.
     # add_stat_annotation(ax, 
     #                     data = all_comp_2level,
