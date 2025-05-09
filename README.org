@@ -1,4 +1,5 @@
 #+AUTHOR: Karol Piera
+#+TITLE: saddle_fast
 
 * Main
 
@@ -36,34 +37,86 @@ To run the analysis, two files are mandatory, and one is hard-coded:
   
  #+begin_src bash
    usage() {
-     echo "Usage: $0 -i <input> -c <compartments> -o <outpath>"
-     echo "  -i <input>         Path to the input .mcool file"
-     echo "  -c <compartments>  Path to the compartments file"
-     echo "  -o <outpath>      Path to the output directory"
-   }   
+  echo "Usage: $0 -i <input> -c <compartments> -o <outpath>"
+  echo "  -i <input>         Path to the input .mcool file"
+  echo "  -c <compartments>  Path to the compartments file"
+  echo "  -o <outpath>      Path to the output directory"
+  echo "  -g <genome>       Genome version (hg38 or hg19). Genome is used to exclude chromosomes from the analysis"
+  echo "  -h                Display this help message"
+}
  #+end_src
 
 #+begin_src bash
   # Here is an exmaple
   ./RunSaddle.sh -i /path/to/mcool -c /path/to/comaprtments.bed -o /path/to/your/output
 #+end_src
-** Parameter explanation 
-Currently, for the sake of simplicity and reproducibility, following parameters are hard coded:
+** Parameters
+Currently, for the sake of simplicity and reproducibility, following parameters are hard-coded:
 - HIC_RES hic resolution that is used to extract contacts
 - calder resolution used to call compartments
 - n_tiles = 16; parameter to control bins in quantile analysis. [See section: Output]
-- EXCLUDED_CHROMOSOMES = set to a hg38 default file in there reference folder.
+- EXCLUDED_CHROMOSOMES is controlled by -g flag. hg38 or hg19 would use default lists of excluded chromosomes.
+  See ref directory. 
 
 * Output
-Scripts run several analyses at both the chromosome level and the genome level. A detailed description will follow here soon.
-In the output directory, you will find a plots directory with the results from chromosome level analysis. 
-In the main directory, you can find the following outputs:
+Scripts run several analyses at both: chromosome level and genome level. A detailed description of each step can be found in the analysis section below. Output of each analysis is as follows:
+** Figures 
+*** Compartment segregation
+- 1_chrom_compartment_segregation contains chrom-level figures of:
+  + boxplot of compartment segregation distribution by 8 sub-compartment levels
+  + scatter plots of compartment continuous rank distribution segregation
+*** Tile-level analysis
+- 2_chrom_16-tiles_segreg_distribution
+  Compartment segregation grouped by 16 tiles (See tile-level analysis.)
+- 3_tile_analysis
+  + boxplot rank distrubtion by 16 tiles
+  + saddle plot, 16 tiles instead of 8 sub-compartments
+*** 8 Sub-compartment saddle plots
+- 4_chrom_comp_saddle
+  Saddle plots of 8 sub-compartments.
+- 5_chrom_comp_rank_distribution
+  Boxplot of continoues rank distrubtion across 8 sub-comp. levels.
+  
+*** Domain-level analysis
+- 6_domain_analysis
+  Heatmaps of O/E values at the domain level. Meaning grouped by comp1, comp1, rank1, rank2. 
+*** Genome-wide
+- genomewide_16_tiles_saddle_plot.pdf
+  16 tiles genome-wide.
+- genomewide_compartments_saddle_plot.pdf
+  Saddle for 8 sub-compartments, genome wide.
+- genomewide_AB_segregation_boxplot.pdf
+  AA and BB vs AB segregation. 
+** Data
+- compartment_scores.tsv stores compartment segregation values computed for each chromosomes separately. *IMPORTANT:* this files is *required* for the *LCS* compartment segregation analysis.
+- compartment_rank.bedGraph and compartment_segregation.bedGraph (and their bigwig counter-parts) are exported continuous
+  values from the analysis.
+- segregation_stats.tsv
+  AA, BB and AB global segregation stats.
+- compartments.tsv
+  Averaged O/E values for pair-wise sub-compartment interactions, on every chromosome.
+  
 
-** Compartment segregation score (cscore)
-
+* Analysis description
+** Computing compartment segregation scores at the 8-levels (A.1.1 -> B.2.2)                                                   
+For each bin:
+- We sum all the O/E interactions between the bin and all the 8 compartments                   
+- We divide those values by the total number of interactions, thus obtaining a percentage      
+- We divide those values by the expected percentage of interactions for each compartment level,
+  which is obtained as the percentage of bins covered by each level in that chromosome     
+- We divide those values by the total number of interactions, thus obtaining a percentage      
 ** Tile-level analysis
-
-** 8 Sub-ompartment saddle plots
-
-** Domain-level analysis
-
+For each chrom:
+- Get the binned compartments for the chromosome.
+- Extract the Hi-C bin (in the resolution of the Hi-C data) from the start of the compartment bin 
+- Assign a tile to each bin, based on its domain rank, using percentiles
+** Sub-compartment level
+For each chrom:
+- 4_chrom_comp_saddle
+  Saddle plots (8 sub-compartments)
+- 5_chrom_comp_rank_distribution
+  Compartment domain rank distribution
+** Comp. domain rank analysis
+For each chrom:
+- 
+** Genome-wide

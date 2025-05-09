@@ -11,8 +11,8 @@ Major modifications:
 - Plot functions are now in saddle_plt.py module
 
 # TODO:
-- refactor quantile computation in polars
-- refactor to polars genome-wide analysis
+- refactor quantile computation in polars (see githhub issue https://github.com/pola-rs/polars/issues/18236)
+- see if fanc dependency can be removed
 '''
 import os
 import subprocess
@@ -79,7 +79,8 @@ def main():
     logger.info(f"- Hi-C resolution: {hic_resolution}")
     logger.info(f"- Compartments: {compartments_path}")
     logger.info(f"- Compartments resolution: {compartments_resolution}")
-    logger.info(f"- Chromosomes to exclude: " + ", ".join(excluded_chroms))
+    # Default list is long and pollutes the log
+    #logger.info(f"- Chromosomes to exclude: " + ", ".join(excluded_chroms))  
     logger.info(f"- N. tiles: {n_tiles}")
     logger.info(f"- Output path: {output_path}")
 
@@ -99,11 +100,15 @@ def main():
     all_chrom_compartment_scores = []
     
     hic = fanc.load(hic_path + f"::resolutions/{hic_resolution}")
-    compartments = utils.load_compartments(compartments_path, CALDER_HEADER)
-    compartments_bed = BedTool.from_dataframe(compartments).sort()
+
+    compartments_bed = BedTool.from_dataframe(
+        utils.load_compartments(compartments_path, CALDER_HEADER)
+    ).sort()
     
     bins = BedTool().window_maker(b = compartments_bed, w = compartments_resolution)
-    compartments_binned = bins.map(compartments_bed, c = [5, 6, 7], o = ["distinct", 'mean', 'distinct'])\
+    compartments_binned = bins.map(compartments_bed,
+                                   c = [5, 6, 7],
+                                   o = ["distinct", 'mean', 'distinct'])\
                                   .to_dataframe(names =\
                                                 ['chr', 'start', 'end', "compartment", 'domain_rank', 'compartment_id'])
     
@@ -235,11 +240,9 @@ def main():
         all_chrom_compartment_scores.append(chrom_compartment_scores)
         
         # Plot
-        SEG_PLT_PATH = os.path.join(PLT_PATH, "chrom_compartment_segregation")
+        SEG_PLT_PATH = os.path.join(PLT_PATH, "1_chrom_compartment_segregation")
         os.makedirs(SEG_PLT_PATH, exist_ok=True)
-        
         saddle_plt.plt_comp_segreg_distribution(chrom_compartment_scores, chrom, output_path=SEG_PLT_PATH)
-        saddle_plt.plt_tile_segreg_distribution(chrom_compartment_scores, chrom, output_path=SEG_PLT_PATH)
 
         #################### Tile-level analysis #######################a
         # -------------------
@@ -255,8 +258,13 @@ def main():
         #       tile1 = 3, tile2 = 7, count = 100
         #       tile1 = 2, tile2 = 5, count = 50
         #       tile1 = 3, tile2 = 7, count = 200
-        
+        # Plot distribution of segregation scores
         logger.info("- Tile-level analysis")
+        
+        DIST_PLT_PATH = os.path.join(PLT_PATH, "2_chrom_16-tiles_segreg_distribution")
+        os.makedirs(DIST_PLT_PATH, exist_ok=True)
+        saddle_plt.plt_tile_segreg_distribution(chrom_compartment_scores, chrom, output_path=DIST_PLT_PATH)
+        
         tile_level = chrom_pixels_with_comp.group_by(['tile1','tile2']).agg(
             pl.sum("oe").alias("sum"),
             pl.len().alias("count")
@@ -277,7 +285,7 @@ def main():
         all_tile_level.append(tile_level)
     
         # Plot
-        TILE_PLT_PATH = os.path.join(PLT_PATH, "tile_analysis")
+        TILE_PLT_PATH = os.path.join(PLT_PATH, "3_tile_analysis")
         os.makedirs(TILE_PLT_PATH, exist_ok=True)
         saddle_plt.plt_tile_analysis(tile_level, chrom_comps, chrom, output_path=TILE_PLT_PATH)
 
@@ -307,12 +315,14 @@ def main():
         comp_level = comp_level.to_pandas()
         all_comp_level.append(comp_level)
         # Plot
-        SUBCOMP_PLT_PATH = os.path.join(PLT_PATH, "chrom_comp_saddle")
+        SUBCOMP_PLT_PATH = os.path.join(PLT_PATH, "4_chrom_comp_saddle")
         os.makedirs(SUBCOMP_PLT_PATH, exist_ok=True)
         saddle_plt.plt_chrom_comp_saddle(comp_level, chrom, output_path=SUBCOMP_PLT_PATH)
-        saddle_plt.plt_comp_rank_distribution(chrom_comps.to_pandas(), chrom, output_path=SUBCOMP_PLT_PATH)
+        RANK_PLT_PATH = os.path.join(PLT_PATH, "5_chrom_comp_rank_distribution")
+        os.makedirs(RANK_PLT_PATH, exist_ok=True)
+        saddle_plt.plt_comp_rank_distribution(chrom_comps.to_pandas(), chrom, output_path=RANK_PLT_PATH)
 
-        #################### Compartment Rank domain-level analysis #######################
+        #################### Compartment domain rank level analysis #######################
         logger.info("- Domain-level analysis")
         domain_level = chrom_pixels_with_comp.group_by(['compartment_id1', 'compartment_id2',
                                                         'domain_rank1', 'domain_rank2']).agg(
@@ -340,7 +350,7 @@ def main():
         all_domain_level.append(domain_level)
     
         # Plot
-        DOM_PATH = os.path.join(PLT_PATH, "domain_analysis")
+        DOM_PATH = os.path.join(PLT_PATH, "6_domain_analysis")
         os.makedirs(DOM_PATH, exist_ok=True)
         saddle_plt.plt_chrom_domainRank_saddle(domain_level, chrom, output_path=DOM_PATH)
     
@@ -434,28 +444,27 @@ def main():
     all_comp_2level = saddle_plt.plt_AB_segregation(all_comp_level, output_path=output_path)
 
     logger.info('Saving genomewide segregation scores')
-    pd.concat([
-        all_comp_2level.groupby("compartment_pair_diff_same")\
-        ['avg_oe']\
-        .median()\
-        .to_frame("median_oe")\
-        .T\
-        .reset_index(drop=True)\
-        .assign(segregation_score = lambda x: x['AA-BB'] / x['AB'],
-                level = "genomewide")\
-        [['level', 'AA-BB', 'AB', 'segregation_score']],
-        all_comp_2level.groupby(['chr', "compartment_pair_diff_same"])\
-        ['avg_oe']\
-        .median()\
-        .to_frame("median_oe")\
-        .reset_index()\
-        .pivot(index = 'chr', columns = 'compartment_pair_diff_same', values = "median_oe")\
-        .reset_index()\
-        .assign(segregation_score = lambda x: x['AA-BB'] / x['AB'])\
-        .rename(columns = {'chr': 'level'})
-    ], axis=0, ignore_index=True)\
-      .to_csv(os.path.join(output_path, "segregation_stats.tsv"), sep="\t", index=False, header=True)
-
+    seg_scores = pl.concat([
+        pl.DataFrame(all_comp_2level).group_by("compartment_pair_diff_same").agg(
+            pl.col('avg_oe').median().alias("median_oe"),
+            pl.lit("genomewide").alias("level")
+        ).select(['level', 'compartment_pair_diff_same', 'median_oe']),
+        pl.DataFrame(all_comp_2level).group_by(['chr', "compartment_pair_diff_same"]).agg(
+            pl.col('avg_oe').median().alias("median_oe")
+        ).rename({"chr": "level"}),
+    ])
+    seg_scores.filter(pl.col('compartment_pair_diff_same') == "AB").rename(
+        {"median_oe": "AB"}
+    ).drop("compartment_pair_diff_same").join(
+        seg_scores.filter(pl.col('compartment_pair_diff_same') == "AA-BB").rename(
+            {"median_oe": "AA-BB"}
+        ).drop("compartment_pair_diff_same"), on="level", how="inner").with_columns(
+            segregation_score = pl.col('AA-BB') / pl.col('AB')
+        ).write_csv(
+            os.path.join(output_path, "segregation_stats.tsv"),
+            separator = "\t"
+    )
+    
 if __name__ == '__main__':
     main()
 
