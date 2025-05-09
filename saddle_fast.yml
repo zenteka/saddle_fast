@@ -1,4 +1,4 @@
-name: saddleDev
+name: saddle
 channels:
   - conda-forge
   - bioconda
@@ -12,4 +12,5 @@ dependencies:
     - matplotlib
     - statannotations
   - polars
+  - ucsc-bedgraphtobigwig
   - pyarrow
